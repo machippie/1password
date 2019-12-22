@@ -1,0 +1,10 @@
+# Standards: 0.1
+---
+# @var onepassword_user:description: User to run user-specific commands
+# @var onepassword_user:value: onepassword_user | default(homebrew_user) | default(ansible_user_id)
+# onepassword_user:
+
+# @var onepassword_started:description: Restart app if already running
+onepassword_started: False
+
+...

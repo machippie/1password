@@ -1,0 +1,50 @@
+# Standards: 0.1
+---
+- name: Fact 1password user
+  set_fact:
+    onepassword_user: "{{ onepassword_user | default(homebrew_user) | default(ansible_user_id) }}"
+  tags:
+    - 1password
+
+- name: Install psutil package
+  pip:
+    name: psutil
+  tags:
+    - 1password
+
+- become: "{{ (onepassword_user != ansible_user_id) | bool }}"
+  become_user: "{{ onepassword_user }}"
+  block:
+    - name: Install required package
+      ignore_errors: True
+      homebrew_cask:
+        name: 1password
+        greedy: True
+        options: appdir=/Applications
+        accept_external_apps: False
+        state: upgraded
+      tags:
+        - 1password
+
+    - name: Remove quarantine flag
+      register: onepassword_quarantine
+      failed_when: onepassword_quarantine.rc != 0 and "No such xattr" not in onepassword_quarantine.stderr
+      changed_when: onepassword_quarantine.rc == 0
+      command: xattr -d com.apple.quarantine /Applications/1Password\ 7.app
+      tags:
+        - 1password
+
+    - name: Check program running
+      register: onepassword_running
+      pids:
+        name: 1Password 7
+      tags:
+        - 1password
+
+    - name: Fact program running
+      set_fact:
+        onepassword_started: "{{ onepassword_running.pids | length > 0 }}}"
+      tags:
+        - 1password
+
+...

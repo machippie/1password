@@ -1,0 +1,16 @@
+# Standards: 0.1
+---
+- name: Kill 1password
+  command: killall 1Password\ 7
+  register: onepassword_kill
+  failed_when: onepassword_kill.rc != 0 and "No matching processes belonging to you were found" not in onepassword_kill.stderr
+  become: "{{ (onepassword_user != ansible_user_id) | bool }}"
+  become_user: "{{ onepassword_user }}"
+
+- name: Start 1password
+  when: onepassword_started
+  command: open -g /Applications/1Password\ 7.app
+  become: "{{ (onepassword_user != ansible_user_id) | bool }}"
+  become_user: "{{ onepassword_user }}"
+
+...
