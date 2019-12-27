@@ -6,12 +6,6 @@
   tags:
     - 1password
 
-- name: Install psutil package
-  pip:
-    name: psutil
-  tags:
-    - 1password
-
 - become: "{{ (onepassword_user != ansible_user_id) | bool }}"
   become_user: "{{ onepassword_user }}"
   block:
@@ -34,16 +28,24 @@
       tags:
         - 1password
 
+    - name: Install pidof package
+      homebrew:
+        name: pidof
+      tags:
+        - 1password
+
     - name: Check program running
       register: onepassword_running
-      pids:
-        name: 1Password 7
+      check_mode: False
+      failed_when: False
+      changed_when: onepassword_running.stdout | length > 0 | bool
+      command: pidof 1Password\ 7
       tags:
         - 1password
 
     - name: Fact program running
       set_fact:
-        onepassword_started: "{{ onepassword_running.pids | length > 0 }}}"
+        onepassword_started: "{{ onepassword_running.stdout_lines | length > 0 | bool }}"
       tags:
         - 1password
 
